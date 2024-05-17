@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="style.css">
+  <title>Consulta a servidor</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      padding: 20px;
+    }
+    #libros div, #versiculos div {
+      margin-bottom: 10px;
+      padding: 10px;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+    }
+    button {
+      margin-top: 5px;
+    }
+  </style>
+</head>
+<body>
+  <div id="libros"></div>
+  <div id="versiculos"></div>
+
+  <div class="mostrar-consulta">
+      <input type="text" id="busqueda" placeholder="Buscar Ej: 1,1,1">
+      <button onclick="obtenerVersiculo()">Buscar</button>
+      <div id="libros"></div>
+  </div>
+  <!-- <input type="text" id="busqueda" placeholder="Buscar Ej: 1,1,1">
+  <button onclick="obtenerVersiculo()">Buscar</button>
+  <div id="libros"></div> -->
+
+  <script>
+    async function obtenerLibros() {
+      try {
+        const response = await fetch('/api/libro');
+        if (!response.ok) {
+          throw new Error('Error al obtener los libros');
+        }
+        const libros = await response.json();
+        const librosHTML = libros.map(libro => `
+          <div class='content'>
+            <h3>${libro.nombre_libro}</h3>
+            <p>${libro.nombre_moderno}</p>
+            <p>${libro.nuevo_testamento ? 'Nuevo Testamento' : 'Antiguo Testamento'}</p>
+            <button onclick="obtenerVersiculo(${libro.id}, '${libro.nombre_libro}', 1, 2)">Ver versículo 1:1</button>
+          </div>
+        `).join('');
+        document.getElementById('libros').innerHTML = librosHTML;
+      } catch (error) {
+        console.error(error);
+        document.getElementById('libros').innerHTML = 'Error al obtener los libros';
+      }
+    }
+
+    async function obtenerVersiculo(libroId, nombreLibro, capitulo, versiculo) {
+
+      // if (valorArray) {
+      //   const valorBusqueda = document.getElementById('busqueda').value;
+      //   const valorArray = valorBusqueda.split(',')
+        
+      //   nombreLibro = valorArray[0]
+      //   libroId = valorArray[1];
+      //   capitulo = valorArray[2];
+      //   versiculo = valorArray[3]
+      // }
+    
+      console.log(`Consultando libro ID: ${libroId}, capítulo: ${capitulo}, versículo: ${versiculo}`);
+      try {
+        const response = await fetch(`/api/versiculo/${libroId}/capitulo/${capitulo}/versiculo/${versiculo}`);
+        if (!response.ok) {
+          throw new Error('Error al obtener el versículo');
+        }
+        const versiculos = await response.json();
+        const versiculosHTML = versiculos.map(vers => `
+          <div>
+            <h4>${nombreLibro} ${vers.capitulo}:${vers.versiculo}</h4>
+            <p>${vers.texto}</p>
+          </div>
+        `).join('');
+        document.getElementById('versiculos').innerHTML = versiculosHTML;
+      } catch (error) {
+        console.error(error);
+        document.getElementById('versiculos').innerHTML = 'Error al obtener el versículo';
+      }
+    }
+    obtenerLibros();
+  </script>
+</body>
+</html>
