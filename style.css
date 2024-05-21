@@ -13,7 +13,9 @@
   -moz-osx-font-smoothing: grayscale;
   -webkit-text-size-adjust: 100%;
 }
-
+.linea{
+  border: 2px solid #fce329;
+}
 a {
   font-weight: 500;
   color: #646cff;
@@ -25,10 +27,7 @@ a:hover {
 
 body {
   margin: 0;
-  display: flex;
-  place-items: center;
-  min-width: 320px;
-  min-height: 100vh;
+  
 }
 
 h1 {
@@ -39,13 +38,18 @@ h1 {
 #app {
   max-width: 1280px;
   margin: 0 auto;
-  padding: 2rem;
   text-align: center;
 }
 
+.img{
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
 .logo {
-  height: 6em;
-  padding: 1.5em;
+  width: 250px;
+  height: 250px;
   will-change: filter;
   transition: filter 300ms;
 }
@@ -56,6 +60,7 @@ h1 {
   filter: drop-shadow(0 0 2em #f7df1eaa);
 }
 
+
 .card {
   padding: 2em;
 }
@@ -65,6 +70,8 @@ h1 {
 }
 
 button {
+  height: 50px;
+  width: 100px;
   border-radius: 8px;
   border: 1px solid transparent;
   padding: 0.6em 1.2em;
@@ -96,6 +103,32 @@ button:focus-visible {
   }
 }
 
+.title{
+  font-size: 19px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.title2{
+  height: 90px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  color: #6cacff;
+  background-color: #fce329;
+}
+
+.buscador{
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+.container{
+  margin-top: 100px;
+  display: flex;
+  justify-content: space-around ;
+}
 #libros{
   width: fit-content;
   display: grid;
@@ -104,8 +137,59 @@ button:focus-visible {
 }
 
 .mostrar-consulta{
-  height: fit-content;
-  width: fit-content;
+  width: 100%;
+  height: 155px;
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  grid-template-rows: 160px;
+}
+
+.input{
+  width: 210px;
+  height: 50px;
+  border-radius: 10px;
+  border: 2px solid #6f76f3;
+  margin-right: 20px;
+}
+
+.input::placeholder{
+  color: #ffffff;
+  padding: 15px;
+}
+
+.input[type="text"]{
+  padding-left: 30px;
+}
+
+.h3 {
   display: flex;
-  justify-content: flex-start;
+  justify-content: space-between;
+  align-items: center;
+}
+.id {
+  color: grey;
+  font-weight: 900;
+}
+
+.caja{
+  width: 500px;
+  height: fit-content;
+  margin-left: 40px;
+}
+
+.mostrar{
+  padding: 30px !important;
+}
+
+.fav-btn{
+  border-radius: 50px;
+  height: 50px;
+  width: 50px;
+
+}
+
+.fav-btn:hover{
+  border: 1px solid #dc2626;
+  background-image: url('./public/img/corazon.svg');
+  background-repeat: no-repeat;
 }

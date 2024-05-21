@@ -1,6 +1,8 @@
 import express from 'express';
 import mysql from 'mysql2/promise';
 import cors from 'cors';
+import { v4 as uuidv4 } from 'uuid';
+import cookieParser from 'cookie-parser';
 
 const app = express();
 const PORT = 3000;
@@ -12,7 +14,9 @@ const dbConfig = {
   database: 'db_biblia'
 };
 
-app.use(cors({ origin: 'http://localhost:5173' }));
+app.use(cors({ origin: 'http://localhost:5173', credentials: true }));
+app.use(express.json());
+app.use(cookieParser());
 
 let connection;
 
@@ -27,6 +31,48 @@ async function createConnection() {
 
 createConnection();
 
+// Middleware para gestionar el token de sesión
+app.use((req, res, next) => {
+  let token = req.cookies.session_token;
+  if (!token) {
+    token = uuidv4();
+    res.cookie('session_token', token, { maxAge: 900000, httpOnly: true });
+  }
+  req.session_token = token;
+  next();
+});
+
+app.post('/api/favorito', async (req, res) => {
+  const { libro_id, capitulo, versiculo } = req.body;
+  const session_token = req.session_token;
+
+  try {
+    const [result] = await connection.execute(
+      'INSERT INTO favorito (session_token, libro_id, capitulo, versiculo) VALUES (?, ?, ?, ?)',
+      [session_token, libro_id, capitulo, versiculo]
+    );
+    res.status(201).json({ id: result.insertId });
+  } catch (error) {
+    console.error('Error:', error);
+    res.status(500).json({ error: 'Error Interno del Servidor' });
+  }
+});
+
+app.get('/api/favorito', async (req, res) => {
+  const session_token = req.session_token;
+
+  try {
+    const [rows] = await connection.execute(
+      'SELECT * FROM favorito WHERE session_token = ?',
+      [session_token]
+    );
+    res.json(rows);
+  } catch (error) {
+    console.error('Error:', error);
+    res.status(500).json({ error: 'Error Interno del Servidor' });
+  }
+});
+
 app.get('/api/libro', async (req, res) => {
   try {
     const [rows] = await connection.execute('SELECT * FROM libro');
@@ -34,42 +80,6 @@ app.get('/api/libro', async (req, res) => {
   } catch (error) {
     console.error('Error:', error);
     res.status(500).json({ error: 'Error Interno del Servidor' });
-  }
-});
-
-app.get('/api/versiculo/:id/capitulo/:capitulo/versiculo/:versiculo', async (req, res) => {
-  const { id, capitulo, versiculo } = req.params;
-  console.log(`Consultando libro ID: ${id}, capítulo: ${capitulo}, versículo: ${versiculo}`);
-  try {
-    const [rows] = await connection.execute(
-      'SELECT * FROM versiculo WHERE libro_id = ? AND capitulo = ? AND versiculo = ?',
-      [id, capitulo, versiculo]
-    );
-    
-    if (rows.length === 0) {
-      return res.status(404).json({ error: 'Versículo no encontrado' });
-    }
-    res.json(rows);
-  } catch (error) {
-    console.error('Error:', error);
-    res.status(500).json({ error: 'Error Interno del Servidor' });
-  }
-});
-
-// app.get('/api/versiculo', async (req, res) => {
-//   try {
-//     const [rows] = await connection.execute('SELECT distinct libro_id FROM versiculo ORDER BY libro_id');
-//     res.json(rows);
-//   } catch (error) {
-//     console.error('Error:', error);
-//     res.status(500).json({ error: 'Error Interno del Servidor' });
-//   }
-// });
-
-app.on('close', async () => {
-  if (connection) {
-    await connection.end();
-    console.log('Conexión a la base de datos cerrada');
   }
 });
 
