@@ -179,17 +179,68 @@ button:focus-visible {
 
 .mostrar{
   padding: 30px !important;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
 
+
+
 .fav-btn{
+  display:flex;
+  justify-content: center;
+  align-items: center;
   border-radius: 50px;
-  height: 50px;
-  width: 50px;
+  height: 40px;
+  width: 40px;
 
 }
 
 .fav-btn:hover{
   border: 1px solid #dc2626;
-  background-image: url('./public/img/corazon.svg');
-  background-repeat: no-repeat;
+
+}
+
+.componente{
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.title3{
+  margin-top: 100px;
+
+}
+
+
+.eliminar,.ver{
+  display:flex;
+  justify-content: center;
+  align-items: center;
+  border-radius: 50px;
+  height: 40px;
+  width: 40px;
+}
+
+.eliminar:hover{
+  border: 1px solid #E74C3C ;
+}
+dialog {
+  border: none;
+  padding: 20px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  border-radius: 8px;
+  background-color:#213547;
+  width: 500px;
+}
+
+dialog::backdrop {
+  background-color: rgba(0, 0, 0, 0.5);
+}
+
+.caja-btn{
+  display: flex;
+  border: none !important;
+  gap: 10px;
 }

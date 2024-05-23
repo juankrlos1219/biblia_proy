@@ -66,24 +66,23 @@ app.post('/api/favorito', async (req, res) => {
   }
 });
 
-// Endpoint para eliminar un favorito específico por ID de libro
-app.delete('/api/favorito/libro/:libro_id', async (req, res) => {
-  console.log('DELETE request received at /api/favorito/libro/:libro_id');
-  const libroId = req.params.libro_id;
+app.delete('/api/favorito/:id', async (req, res) => {
+  console.log('DELETE request received at /api/favorito/:id');
+  const favoritoId = req.params.id;
   const session_token = req.session_token;
   
-  console.log('ID del libro del favorito a eliminar:', libroId);
+  console.log('ID del favorito a eliminar:', favoritoId);
   
   try {
     const [result] = await connection.execute(
-      'DELETE FROM favorito WHERE libro_id = ? AND session_token = ?',
-      [libroId, session_token]
+      'DELETE FROM favorito WHERE id = ? AND session_token = ?',
+      [favoritoId, session_token]
     );
 
     if (result.affectedRows > 0) {
-      res.status(200).json({ message: 'Favoritos del libro eliminados exitosamente' });
+      res.status(200).json({ message: 'Favorito eliminado exitosamente' });
     } else {
-      res.status(404).json({ error: 'Favoritos del libro no encontrados' });
+      res.status(404).json({ error: 'Favorito no encontrado' });
     }
   } catch (error) {
     console.error('Error:', error);
@@ -91,16 +90,39 @@ app.delete('/api/favorito/libro/:libro_id', async (req, res) => {
   }
 });
 
-
 app.get('/api/favorito', async (req, res) => {
   const session_token = req.session_token;
 
   try {
     const [rows] = await connection.execute(
-      'SELECT * FROM favorito WHERE session_token = ?',
+      `SELECT favorito.*, libro.nombre_libro 
+       FROM favorito 
+       JOIN libro ON favorito.libro_id = libro.id
+       WHERE favorito.session_token = ?`,
       [session_token]
     );
     res.json(rows);
+  } catch (error) {
+    console.error('Error:', error);
+    res.status(500).json({ error: 'Error Interno del Servidor' });
+  }
+});
+
+app.post('/api/favorito/:id/nota', async (req, res) => {
+  const favoritoId = req.params.id;
+  const { nota } = req.body;
+  const session_token = req.session_token;
+
+  try {
+    const [result] = await connection.execute(
+      'UPDATE favorito SET nota = ? WHERE id = ? AND session_token = ?',
+      [nota, favoritoId, session_token]
+    );
+    if (result.affectedRows > 0) {
+      res.status(200).json({ message: 'Nota guardada exitosamente' });
+    } else {
+      res.status(404).json({ error: 'Favorito no encontrado' });
+    }
   } catch (error) {
     console.error('Error:', error);
     res.status(500).json({ error: 'Error Interno del Servidor' });

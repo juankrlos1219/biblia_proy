@@ -30,21 +30,25 @@
     </div>
     <h2 class="title">¡Encuentra los versiculos aún más Rápido!</h2>
     <div class="buscador">
-      <input type="text" id="busqueda" class="input" placeholder="Buscar Ej: 1,1,1">
+      <input type="text" id="busqueda" class="input" placeholder="Buscar Ej: genesis,1,1,1">
       <button onclick="obtenerVersiculo()">Buscar</button>
     </div>
   </header>
 
   <h1 class="title2">Biblia Reina Valera 1960</h1>
   <section class="container">
-    <div id="libros"></div>
-    <div id="versiculos" class="caja"></div>
+    <div id="libros"></div>  
+    <section class="componente">
+      <div id="versiculos" class="caja"></div>
+      <h2 class="title3">Favoritos</h2>
+      <div id="favoritos"></div>
+    </section>
   </section>
 
-  <h2 class="title">Favoritos</h2>
-  <section class="container">
-    <div id="favoritos"></div>
+  <section id="versiculoObj">
   </section>
+
+  <section id="modalContainer"></section>
 
   <script>
     async function obtenerLibros() {
@@ -72,7 +76,7 @@
     }
 
     async function obtenerVersiculo() {
-      const valorBusqueda = document.getElementById('busqueda').value;
+      var valorBusqueda = document.getElementById('busqueda').value;
       const [nombre_libro, libro_id, capitulo, versiculo] = valorBusqueda.split(',');
 
       console.log(`Consultando libro ID: ${libro_id}, capítulo: ${capitulo}, versículo: ${versiculo}`);
@@ -84,9 +88,9 @@
         const versiculos = await response.json();
         const versiculosHTML = versiculos.map(vers => `
           <div class="mostrar">
-            <h4>${nombre_libro} ${vers.capitulo}:${vers.versiculo}</h4>
+            <h2>${nombre_libro} ${vers.capitulo}:${vers.versiculo}</h2>
             <p>${vers.texto}</p>
-            <button class="fav-btn" onclick="guardarFavorito(${vers.libro_id}, ${vers.capitulo}, ${vers.versiculo})">Guardar Favorito</button>
+            <button class="fav-btn" onclick="guardarFavorito(${vers.libro_id}, ${vers.capitulo}, ${vers.versiculo})"><img src="./img/corazon.svg" alt="Logo" class="fav"></button>
           </div>
         `).join('');
         document.getElementById('versiculos').innerHTML = versiculosHTML;
@@ -94,6 +98,27 @@
         console.error(error);
         document.getElementById('versiculos').innerHTML = 'Error al obtener el versículo';
       }
+    }
+
+    function mostrarModal(mensaje, duracion = 2000) { 
+        const modalHTML = `
+          <dialog id="modalConfirmacion">
+            <p>${mensaje}</p>
+          </dialog>
+        `;
+        document.getElementById('modalContainer').innerHTML = modalHTML;
+
+        const modal = document.getElementById('modalConfirmacion');
+        const closeButton = document.getElementById('closeButtonModal');
+        
+        modal.showModal();
+        
+        setTimeout(() => {
+          if (modal.open) {
+            modal.close();
+            document.getElementById('modalContainer').innerHTML = ''; 
+          }
+        }, duracion);
     }
 
     async function guardarFavorito(libro_id, capitulo, versiculo) {
@@ -109,7 +134,7 @@
         if (!response.ok) {
           throw new Error(result.error || 'Error al guardar el favorito');
         }
-        alert('Favorito guardado con éxito');
+        mostrarModal('Favorito guardado con éxito');
         obtenerFavoritos();
       } catch (error) {
         console.error(error);
@@ -117,17 +142,44 @@
       }
     }
 
+    async function guardarNota(favoritoId) {
+    const nota = document.getElementById(`nota-${favoritoId}`).value;
+    try {
+      const response = await fetch(`/api/favorito/${favoritoId}/nota`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ nota })
+      });
+      if (!response.ok) {
+        throw new Error('Error al guardar la nota');
+      }
+      mostrarModal('Nota guardada con éxito');
+      obtenerFavoritos(); 
+    } catch (error) {
+      console.error(error);
+      alert('Error al guardar la nota');
+    }
+  }
+
     async function eliminarFavorito(id) {
       try {
         const url = `/api/favorito/${id}`;
-        console.log('URL DELETE:', url); 
+        console.log('URL DELETE:', url);
         const response = await fetch(url, {
           method: 'DELETE',
           headers: {
             'Content-Type': 'application/json'
           }
         });
+        if (!response.ok) {
+          throw new Error('Error al eliminar el favorito');
+        }
+        obtenerFavoritos();
       } catch (error) {
+        console.error(error);
+        alert(error.message || 'Error al eliminar el favorito');
       }
     }
 
@@ -138,16 +190,56 @@
           throw new Error('Error al obtener los favoritos');
         }
         const favoritos = await response.json();
-        const favoritosHTML = favoritos.map(fav => `
-          <div>
-            <h4>Libro ID: ${fav.libro_id}, Capítulo: ${fav.capitulo}, Versículo: ${fav.versiculo}</h4>
-            <button onclick="console.log('Eliminando favorito con ID:', '${fav.id}'); eliminarFavorito('${fav.id}')">Eliminar</button>
+        const favoritosHTML = favoritos.map(favorito => `
+          <div class='content'>
+            <p><strong>${favorito.nombre_libro} ${favorito.capitulo}:${favorito.versiculo}</strong></p>
+            <div class='caja-btn'>
+              <button class='ver' onclick="verMas(${favorito.libro_id}, ${favorito.capitulo}, ${favorito.versiculo})"><img src="./img/ojo.svg" alt="Logo"></button>
+              <button class="eliminar" onclick="eliminarFavorito(${favorito.id})"><img src="./img/basura.svg" alt="Logo"></button>
+            </div>
+            <textarea id="nota-${favorito.id}" placeholder="Agrega una nota...">${favorito.nota || ''}</textarea>
+            <button onclick="guardarNota(${favorito.id})">Guardar Nota</button>
           </div>
         `).join('');
         document.getElementById('favoritos').innerHTML = favoritosHTML;
       } catch (error) {
         console.error(error);
         document.getElementById('favoritos').innerHTML = 'Error al obtener los favoritos';
+      }
+    }
+
+    async function verMas(libro_id, capitulo, versiculo) {
+      try {
+        const response = await fetch(`/api/versiculo/${libro_id}/capitulo/${capitulo}/versiculo/${versiculo}`);
+        if (!response.ok) {
+          throw new Error('Error al obtener el versículo');
+        }
+        const versiculoObj = await response.json();
+        
+        const versiculoObjHTML = versiculoObj.map(vers => `
+          <dialog id='modal'>
+            <p> ${vers.texto}</p> 
+            <button id="closeButton">Cerrar</button>
+          </dialog>
+        `).join('');
+        document.getElementById('versiculoObj').innerHTML = versiculoObjHTML;
+        const modal = document.getElementById('modal');
+        const closeButton = document.getElementById('closeButton');
+        
+        modal.showModal();
+        
+        closeButton.addEventListener('click', () => {
+          modal.close();
+        });
+
+        modal.addEventListener('click', (event) => {
+          if (event.target === modal) {
+            modal.close();
+          }
+        });
+      } catch (error) {
+        console.error(error);
+        alert('Error al obtener el versículo');
       }
     }
 
