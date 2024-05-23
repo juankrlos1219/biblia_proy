@@ -26,7 +26,7 @@
   <p class="linea"></p>
   <header class="mostrar-consulta"> 
     <div class="img">
-      <img src="./public/img/Biblia.png" alt="Logo" class="logo">
+      <img src="./img/Biblia.png" alt="Logo" class="logo">
     </div>
     <h2 class="title">¡Encuentra los versiculos aún más Rápido!</h2>
     <div class="buscador">
@@ -73,18 +73,18 @@
 
     async function obtenerVersiculo() {
       const valorBusqueda = document.getElementById('busqueda').value;
-      const [nombreLibro, libroId, capitulo, versiculo] = valorBusqueda.split(',');
+      const [nombre_libro, libro_id, capitulo, versiculo] = valorBusqueda.split(',');
 
-      console.log(`Consultando libro ID: ${libroId}, capítulo: ${capitulo}, versículo: ${versiculo}`);
+      console.log(`Consultando libro ID: ${libro_id}, capítulo: ${capitulo}, versículo: ${versiculo}`);
       try {
-        const response = await fetch(`/api/versiculo/${libroId}/capitulo/${capitulo}/versiculo/${versiculo}`);
+        const response = await fetch(`/api/versiculo/${libro_id}/capitulo/${capitulo}/versiculo/${versiculo}`);
         if (!response.ok) {
           throw new Error('Error al obtener el versículo');
         }
         const versiculos = await response.json();
         const versiculosHTML = versiculos.map(vers => `
           <div class="mostrar">
-            <h4>${nombreLibro} ${vers.capitulo}:${vers.versiculo}</h4>
+            <h4>${nombre_libro} ${vers.capitulo}:${vers.versiculo}</h4>
             <p>${vers.texto}</p>
             <button class="fav-btn" onclick="guardarFavorito(${vers.libro_id}, ${vers.capitulo}, ${vers.versiculo})">Guardar Favorito</button>
           </div>
@@ -96,23 +96,38 @@
       }
     }
 
-    async function guardarFavorito(libroId, capitulo, versiculo) {
+    async function guardarFavorito(libro_id, capitulo, versiculo) {
       try {
         const response = await fetch('/api/favorito', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json'
           },
-          body: JSON.stringify({ libro_id: libroId, capitulo, versiculo })
+          body: JSON.stringify({ libro_id: libro_id, capitulo, versiculo })
         });
+        const result = await response.json();
         if (!response.ok) {
-          throw new Error('Error al guardar el favorito');
+          throw new Error(result.error || 'Error al guardar el favorito');
         }
         alert('Favorito guardado con éxito');
         obtenerFavoritos();
       } catch (error) {
         console.error(error);
-        alert('Error al guardar el favorito');
+        alert(error.message || 'Error al guardar el favorito');
+      }
+    }
+
+    async function eliminarFavorito(id) {
+      try {
+        const url = `/api/favorito/${id}`;
+        console.log('URL DELETE:', url); 
+        const response = await fetch(url, {
+          method: 'DELETE',
+          headers: {
+            'Content-Type': 'application/json'
+          }
+        });
+      } catch (error) {
       }
     }
 
@@ -126,17 +141,20 @@
         const favoritosHTML = favoritos.map(fav => `
           <div>
             <h4>Libro ID: ${fav.libro_id}, Capítulo: ${fav.capitulo}, Versículo: ${fav.versiculo}</h4>
+            <button onclick="console.log('Eliminando favorito con ID:', '${fav.id}'); eliminarFavorito('${fav.id}')">Eliminar</button>
           </div>
         `).join('');
-        document.getElementById('favorito').innerHTML = favoritosHTML;
+        document.getElementById('favoritos').innerHTML = favoritosHTML;
       } catch (error) {
         console.error(error);
-        document.getElementById('favorito').innerHTML = 'Error al obtener los favoritos';
+        document.getElementById('favoritos').innerHTML = 'Error al obtener los favoritos';
       }
     }
 
-    obtenerLibros();
-    obtenerFavoritos();
+    document.addEventListener('DOMContentLoaded', () => {
+      obtenerLibros();
+      obtenerFavoritos();
+    });
   </script>
 </body>
 </html>
