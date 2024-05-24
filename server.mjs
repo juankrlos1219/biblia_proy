@@ -74,6 +74,11 @@ app.delete('/api/favorito/:id', async (req, res) => {
   console.log('ID del favorito a eliminar:', favoritoId);
   
   try {
+    await connection.execute(
+      'DELETE FROM nota WHERE favorito_id = ?',
+      [favoritoId]
+    );
+
     const [result] = await connection.execute(
       'DELETE FROM favorito WHERE id = ? AND session_token = ?',
       [favoritoId, session_token]
@@ -95,9 +100,10 @@ app.get('/api/favorito', async (req, res) => {
 
   try {
     const [rows] = await connection.execute(
-      `SELECT favorito.*, libro.nombre_libro 
+      `SELECT favorito.*, libro.nombre_libro, nota.nota 
        FROM favorito 
        JOIN libro ON favorito.libro_id = libro.id
+       LEFT JOIN nota ON favorito.id = nota.favorito_id
        WHERE favorito.session_token = ?`,
       [session_token]
     );
@@ -108,21 +114,25 @@ app.get('/api/favorito', async (req, res) => {
   }
 });
 
-app.post('/api/favorito/:id/nota', async (req, res) => {
-  const favoritoId = req.params.id;
+app.post('/api/nota/:favoritoId', async (req, res) => {
+  const favoritoId = req.params.favoritoId;
   const { nota } = req.body;
-  const session_token = req.session_token;
 
   try {
-    const [result] = await connection.execute(
-      'UPDATE favorito SET nota = ? WHERE id = ? AND session_token = ?',
-      [nota, favoritoId, session_token]
+    const [rows] = await connection.execute(
+      'SELECT * FROM nota WHERE favorito_id = ?',
+      [favoritoId]
     );
-    if (result.affectedRows > 0) {
-      res.status(200).json({ message: 'Nota guardada exitosamente' });
-    } else {
-      res.status(404).json({ error: 'Favorito no encontrado' });
+
+    if (rows.length > 0) {
+      return res.status(400).json({ error: 'Este favorito ya tiene una nota guardada' });
     }
+
+    const [result] = await connection.execute(
+      'INSERT INTO nota (favorito_id, nota) VALUES (?, ?)',
+      [favoritoId, nota]
+    );
+    res.status(201).json({ message: 'Nota guardada exitosamente' });
   } catch (error) {
     console.error('Error:', error);
     res.status(500).json({ error: 'Error Interno del Servidor' });

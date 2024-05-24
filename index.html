@@ -147,25 +147,44 @@
     }
 
     async function guardarNota(favoritoId) {
-    const nota = document.getElementById(`nota-${favoritoId}`).value;
-    try {
-      const response = await fetch(`/api/favorito/${favoritoId}/nota`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ nota })
-      });
-      if (!response.ok) {
-        throw new Error('Error al guardar la nota');
-      }
-      mostrarModal('Nota guardada con éxito');
-      obtenerFavoritos(); 
-    } catch (error) {
-      console.error(error);
-      alert('Error al guardar la nota');
-    }
+  const notaInput = document.getElementById(`nota-${favoritoId}`);
+  const nota = notaInput.value.trim();
+
+  const notaGuardada = notaInput.dataset.notaGuardada === 'true'; 
+
+  if (nota === '') {
+    alert('Por favor ingresa una nota antes de guardar.');
+    return;
   }
+
+  if (notaGuardada) {
+    alert('Este favorito ya tiene una nota guardada.');
+    return;
+  }
+
+  try {
+    const response = await fetch(`/api/nota/${favoritoId}`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ nota })
+    });
+
+    const result = await response.json();
+    if (!response.ok) {
+      throw new Error(result.error || 'Error al guardar la nota');
+    }
+
+    notaInput.dataset.notaGuardada = 'true';
+
+    mostrarModal('Nota guardada exitosamente');
+    obtenerFavoritos();
+  } catch (error) {
+    console.error(error);
+    alert('Error al guardar la nota');
+  }
+}
 
     async function eliminarFavorito(id) {
       try {
@@ -188,29 +207,30 @@
     }
 
     async function obtenerFavoritos() {
-      try {
-        const response = await fetch('/api/favorito');
-        if (!response.ok) {
-          throw new Error('Error al obtener los favoritos');
-        }
-        const favoritos = await response.json();
-        const favoritosHTML = favoritos.map(favorito => `
-          <div class='content'>
-            <p><strong>${favorito.nombre_libro} ${favorito.capitulo}:${favorito.versiculo}</strong></p>
-            <div class='caja-btn'>
-              <button class='ver' onclick="verMas(${favorito.libro_id}, ${favorito.capitulo}, ${favorito.versiculo})"><img src="./img/ojo.svg" alt="Logo"></button>
-              <button class="eliminar" onclick="eliminarFavorito(${favorito.id})"><img src="./img/basura.svg" alt="Logo"></button>
-            </div>
-            <textarea id="nota-${favorito.id}" placeholder="Agrega una nota...">${favorito.nota || ''}</textarea>
-            <button onclick="guardarNota(${favorito.id})">Guardar Nota</button>
-          </div>
-        `).join('');
-        document.getElementById('favoritos').innerHTML = favoritosHTML;
-      } catch (error) {
-        console.error(error);
-        document.getElementById('favoritos').innerHTML = 'Error al obtener los favoritos';
-      }
+  try {
+    const response = await fetch('/api/favorito');
+    if (!response.ok) {
+      throw new Error('Error al obtener los favoritos');
     }
+    const favoritos = await response.json();
+    const favoritosHTML = favoritos.map(favorito => `
+      <div class='content'>
+        <p><strong>${favorito.nombre_libro} ${favorito.capitulo}:${favorito.versiculo}</strong></p>
+        <div class='caja-btn'>
+          <button class='ver' onclick="verMas(${favorito.libro_id}, ${favorito.capitulo}, ${favorito.versiculo})"><img src="./img/ojo.svg" alt="Logo"></button>
+          <button class="eliminar" onclick="eliminarFavorito(${favorito.id})"><img src="./img/basura.svg" alt="Logo"></button>
+        </div>
+        <textarea id="nota-${favorito.id}" placeholder="Agrega una nota...">${favorito.nota || ''}</textarea>
+        <button onclick="guardarNota(${favorito.id})">Guardar Nota</button>
+        ${favorito.nota ? `<p>Nota: ${favorito.nota}</p>` : '<p>Nota: No hay nota guardada</p>'}
+      </div>
+    `).join('');
+    document.getElementById('favoritos').innerHTML = favoritosHTML;
+  } catch (error) {
+    console.error(error);
+    document.getElementById('favoritos').innerHTML = 'Error al obtener los favoritos';
+  }
+}
 
     async function verMas(libro_id, capitulo, versiculo) {
       try {
