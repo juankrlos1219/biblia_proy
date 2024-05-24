@@ -125,7 +125,7 @@ button:focus-visible {
   align-items: center;
 }
 .container{
-  margin-top: 100px;
+  margin-top: 50px;
   display: flex;
   justify-content: space-around ;
 }
@@ -153,7 +153,6 @@ button:focus-visible {
 }
 
 .input::placeholder{
-  color: #ffffff;
   padding: 15px;
 }
 
@@ -182,9 +181,16 @@ button:focus-visible {
   display: flex;
   flex-direction: column;
   align-items: center;
+  -webkit-box-shadow: 0px 0px 5px 0px rgba(0,0,0,0.75);
+-moz-box-shadow: 0px 0px 5px 0px rgba(0,0,0,0.75);
+box-shadow: 0px 0px 5px 0px rgba(0,0,0,0.75);
 }
 
-
+.libros{
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
 
 .fav-btn{
   display:flex;
@@ -209,7 +215,7 @@ button:focus-visible {
 }
 
 .title3{
-  margin-top: 100px;
+  margin-top: 50px;
 
 }
 
@@ -229,18 +235,43 @@ button:focus-visible {
 dialog {
   border: none;
   padding: 20px;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.432);
   border-radius: 8px;
-  background-color:#213547;
+  background-color:#ffffff;
   width: 500px;
+  display: flex;
+  justify-content: center;
 }
 
 dialog::backdrop {
-  background-color: rgba(0, 0, 0, 0.5);
+  background-color: rgba(10, 9, 9, 0.644);
 }
 
 .caja-btn{
   display: flex;
   border: none !important;
   gap: 10px;
+  justify-content: space-around;
 }
+
+#modal{
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.texto{
+  font-size: 18px;
+}
+
+strong{
+  display: flex;
+  justify-content: center;
+}
+
+.content{
+  -webkit-box-shadow: 0px 0px 5px 0px rgba(0,0,0,0.75);
+  -moz-box-shadow: 0px 0px 5px 0px rgba(0,0,0,0.75);
+  box-shadow: 0px 0px 5px 0px rgba(0,0,0,0.75);
+}
+

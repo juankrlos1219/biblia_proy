@@ -30,15 +30,19 @@
     </div>
     <h2 class="title">¡Encuentra los versiculos aún más Rápido!</h2>
     <div class="buscador">
-      <input type="text" id="busqueda" class="input" placeholder="Buscar Ej: genesis,1,1,1">
+      <input type="text" id="busqueda" class="input" placeholder="Ej: genesis,1,1,1">
       <button onclick="obtenerVersiculo()">Buscar</button>
     </div>
   </header>
 
   <h1 class="title2">Biblia Reina Valera 1960</h1>
   <section class="container">
-    <div id="libros"></div>  
+    <div class="libros">
+      <h2>Libros</h2>
+      <div id="libros"></div>  
+    </div>
     <section class="componente">
+      <h2>Tu Consulta</h2>
       <div id="versiculos" class="caja"></div>
       <h2 class="title3">Favoritos</h2>
       <div id="favoritos"></div>
@@ -134,7 +138,7 @@
         if (!response.ok) {
           throw new Error(result.error || 'Error al guardar el favorito');
         }
-        mostrarModal('Favorito guardado con éxito');
+        mostrarModal('Añadiendo a Favoritos');
         obtenerFavoritos();
       } catch (error) {
         console.error(error);
@@ -218,20 +222,14 @@
         
         const versiculoObjHTML = versiculoObj.map(vers => `
           <dialog id='modal'>
-            <p> ${vers.texto}</p> 
-            <button id="closeButton">Cerrar</button>
+            <p class="texto"> ${vers.texto}</p> 
           </dialog>
         `).join('');
         document.getElementById('versiculoObj').innerHTML = versiculoObjHTML;
         const modal = document.getElementById('modal');
-        const closeButton = document.getElementById('closeButton');
         
         modal.showModal();
         
-        closeButton.addEventListener('click', () => {
-          modal.close();
-        });
-
         modal.addEventListener('click', (event) => {
           if (event.target === modal) {
             modal.close();
